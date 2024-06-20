@@ -9,16 +9,36 @@ Welcome to the Groq Chat Bot with Multiple Language Models, a demo application t
 Groq is a cloud-based API that provides access to a wide range of AI models, including language models, computer vision models, and more. Groq allows developers to easily integrate these models into their applications, enabling features such as chatbots, language translation, and image recognition.
 
 **How to Use the Application**
+
 -----------------------------
 
 ### Installation
 
 To run the application locally, follow these steps:
 
-1. Clone the repository: `git clone https://github.com/SauravSrivastav/Groq-Chat-Bot-with-Multiple-Language-Models.git`
-2. Install the required packages: `pip install -r requirements.txt`
-3. Create a `.env` file with your Groq API key: `GROQ_API_KEY=your_api_key_here`
-4. Run the application: `streamlit run app.py`
+Clone the repository: `git clone https://github.com/SauravSrivastav/Groq-Chat-Bot-with-Multiple-Language-Models.git`
+
+
+**Setting up the Environment**
+-----------------------------
+
+1. Create a new virtual environment using `python -m venv myenv`.
+2. Activate the virtual environment using `source myenv/bin/activate` (on Linux/Mac) or `myenv\Scripts\activate` (on Windows).
+3. Install the required dependencies using `pip install -r requirements.txt`.
+
+**Setting up the GROQ_API_KEY**
+-----------------------------
+
+1. Create a new file called `.env` in the root directory of your project.
+2. Add the following line to the `.env` file: `GROQ_API_KEY=YOUR_API_KEY_HERE`.
+3. Replace `YOUR_API_KEY_HERE` with your actual Groq API key.
+
+**Running the App**
+------------------
+
+1. Run the app using `streamlit run app.py`.
+2. Open a web browser and navigate to `http://localhost:8501`.
+3. Interact with the chatbot by typing in your prompt and pressing enter.
 
 ### Usage
 
