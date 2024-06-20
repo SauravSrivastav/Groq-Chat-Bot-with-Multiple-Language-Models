@@ -10,7 +10,7 @@ Groq is a cloud-based API that provides access to a wide range of AI models, inc
 
 **How to Use the Application**
 
------------------------------
+--------------------------------
 
 ### Installation
 
