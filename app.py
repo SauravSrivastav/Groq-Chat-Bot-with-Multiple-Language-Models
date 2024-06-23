@@ -151,14 +151,18 @@ def chat_to_pdf(messages):
 
 # Function to create a download link
 def get_download_link(file_content, file_name, file_format):
-    b64 = base64.b64encode(file_content.encode()).decode()
-    if file_format == 'txt':
-        mime = 'text/plain'
-    elif file_format == 'json':
-        mime = 'application/json'
+    if file_format in ['txt', 'json']:
+        b64 = base64.b64encode(file_content.encode('utf-8')).decode()
     else:  # pdf
-        mime = 'application/pdf'
         b64 = base64.b64encode(file_content).decode()
+    
+    mime_types = {
+        'txt': 'text/plain',
+        'json': 'application/json',
+        'pdf': 'application/pdf'
+    }
+    mime = mime_types.get(file_format, 'application/octet-stream')
+    
     href = f'<a href="data:{mime};base64,{b64}" download="{file_name}">Download {file_format.upper()} File</a>'
     return href
 
@@ -171,26 +175,29 @@ export_format = st.sidebar.selectbox(
 )
 
 if st.sidebar.button("Export Chat"):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    if export_format == "JSON":
-        chat_export = {
-            "model": st.session_state.selected_model,
-            "timestamp": timestamp,
-            "messages": st.session_state.messages
-        }
-        file_content = json.dumps(chat_export, indent=2)
-        file_name = f"groq_chat_export_{timestamp}.json"
-    elif export_format == "TXT":
-        file_content = chat_to_text(st.session_state.messages)
-        file_name = f"groq_chat_export_{timestamp}.txt"
-    else:  # PDF
-        file_content = chat_to_pdf(st.session_state.messages)
-        file_name = f"groq_chat_export_{timestamp}.pdf"
-    
-    st.sidebar.markdown(
-        get_download_link(file_content, file_name, export_format.lower()),
-        unsafe_allow_html=True
-    )
+    try:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        if export_format == "JSON":
+            chat_export = {
+                "model": st.session_state.selected_model,
+                "timestamp": timestamp,
+                "messages": st.session_state.messages
+            }
+            file_content = json.dumps(chat_export, indent=2)
+            file_name = f"groq_chat_export_{timestamp}.json"
+        elif export_format == "TXT":
+            file_content = chat_to_text(st.session_state.messages)
+            file_name = f"groq_chat_export_{timestamp}.txt"
+        else:  # PDF
+            file_content = chat_to_pdf(st.session_state.messages)
+            file_name = f"groq_chat_export_{timestamp}.pdf"
+        
+        st.sidebar.markdown(
+            get_download_link(file_content, file_name, export_format.lower()),
+            unsafe_allow_html=True
+        )
+    except Exception as e:
+        st.sidebar.error(f"An error occurred during export: {str(e)}")
 
 # Detect model change and clear chat history if model has changed
 if st.session_state.selected_model != model_option:
