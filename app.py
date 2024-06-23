@@ -4,9 +4,11 @@ from typing import Generator
 from groq import Groq
 import json
 from datetime import datetime
+from fpdf import FPDF
+import base64
 
 # Set page configuration
-st.set_page_config(page_icon="🤖", layout="wide", page_title="Groq Chat Bot")
+st.set_page_config(page_icon="🤖", layout="wide", page_title="Groq AI Playground")
 
 # Custom theme
 st.markdown("""
@@ -46,9 +48,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Page title and description
-st.title("Groq Chat Bot with Multiple Language Models")
+st.title("Groq AI Playground")
 st.markdown("""
-    Welcome to the Groq Chat Bot with Multiple Language Models. Select a model and interact with the chatbot!
+    Welcome to the Groq AI Playground! Explore multiple language models and experience the power of Groq's API.
+    Select a model, adjust parameters, and start chatting with advanced AI models.
 """)
 
 # Initialize session state
@@ -78,6 +81,11 @@ st.sidebar.header("Configuration")
 api_key = st.sidebar.text_input("Enter your Groq API Key:", type="password")
 if api_key:
     st.session_state.api_key = api_key
+
+# Add link to get API key
+st.sidebar.markdown("""
+    [Get your Groq API key here](https://console.groq.com/keys)
+""")
 
 # Model selection
 model_option = st.sidebar.selectbox(
@@ -120,18 +128,68 @@ temperature = st.sidebar.slider(
 if st.sidebar.button("Clear Chat"):
     st.session_state.messages = []
 
-# Export chat button
+# Function to convert chat history to plain text
+def chat_to_text(messages):
+    text = "Groq AI Playground - Chat Export\n\n"
+    for msg in messages:
+        text += f"{msg['role'].capitalize()}: {msg['content']}\n\n"
+    return text
+
+# Function to convert chat history to PDF
+def chat_to_pdf(messages):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Groq AI Playground - Chat Export", ln=1, align='C')
+    for msg in messages:
+        pdf.set_font("Arial", 'B', size=10)
+        pdf.cell(200, 10, txt=f"{msg['role'].capitalize()}:", ln=1)
+        pdf.set_font("Arial", size=10)
+        pdf.multi_cell(0, 10, txt=msg['content'])
+        pdf.ln(5)
+    return pdf.output(dest='S').encode('latin-1')
+
+# Function to create a download link
+def get_download_link(file_content, file_name, file_format):
+    b64 = base64.b64encode(file_content.encode()).decode()
+    if file_format == 'txt':
+        mime = 'text/plain'
+    elif file_format == 'json':
+        mime = 'application/json'
+    else:  # pdf
+        mime = 'application/pdf'
+        b64 = base64.b64encode(file_content).decode()
+    href = f'<a href="data:{mime};base64,{b64}" download="{file_name}">Download {file_format.upper()} File</a>'
+    return href
+
+# Export chat functionality
+st.sidebar.header("Export Chat")
+export_format = st.sidebar.selectbox(
+    "Choose export format:",
+    options=["JSON", "TXT", "PDF"],
+    index=0,
+)
+
 if st.sidebar.button("Export Chat"):
-    chat_export = {
-        "model": model_option,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "messages": st.session_state.messages
-    }
-    st.sidebar.download_button(
-        label="Download Chat History",
-        data=json.dumps(chat_export, indent=2),
-        file_name="chat_export.json",
-        mime="application/json"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    if export_format == "JSON":
+        chat_export = {
+            "model": st.session_state.selected_model,
+            "timestamp": timestamp,
+            "messages": st.session_state.messages
+        }
+        file_content = json.dumps(chat_export, indent=2)
+        file_name = f"groq_chat_export_{timestamp}.json"
+    elif export_format == "TXT":
+        file_content = chat_to_text(st.session_state.messages)
+        file_name = f"groq_chat_export_{timestamp}.txt"
+    else:  # PDF
+        file_content = chat_to_pdf(st.session_state.messages)
+        file_name = f"groq_chat_export_{timestamp}.pdf"
+    
+    st.sidebar.markdown(
+        get_download_link(file_content, file_name, export_format.lower()),
+        unsafe_allow_html=True
     )
 
 # Detect model change and clear chat history if model has changed
@@ -192,6 +250,6 @@ if prompt := st.chat_input("Enter your prompt here..."):
 # Add footer
 st.markdown("---")
 st.markdown("""
-**Note:** This is a demo application showcasing the capabilities of various AI models.
-Developed by [Your Name](https://your-website.com).
+**Note:** This is a demo application showcasing the capabilities of various AI models through the Groq API.
+Developed by [Saurav Srivastav](https://github.com/SauravSrivastav)
 """)
